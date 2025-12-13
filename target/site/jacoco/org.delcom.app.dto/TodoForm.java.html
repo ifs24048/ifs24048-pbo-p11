@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TodoForm.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.dto</a> &gt; <span class="el_source">TodoForm.java</span></div><h1>TodoForm.java</h1><pre class="source lang-java linenums">package org.delcom.app.dto;
+
+import java.util.UUID;
+
+public class TodoForm {
+
+    private UUID id;
+
+    private String title;
+
+    private String description;
+
+<span class="fc" id="L13">    private boolean isFinished = false;</span>
+
+    private String confirmTitle;
+
+    // Constructor
+<span class="fc" id="L18">    public TodoForm() {</span>
+<span class="fc" id="L19">    }</span>
+
+    // Getters and Setters
+    public UUID getId() {
+<span class="fc" id="L23">        return id;</span>
+    }
+
+    public void setId(UUID id) {
+<span class="fc" id="L27">        this.id = id;</span>
+<span class="fc" id="L28">    }</span>
+
+    public String getTitle() {
+<span class="fc" id="L31">        return title;</span>
+    }
+
+    public void setTitle(String title) {
+<span class="fc" id="L35">        this.title = title;</span>
+<span class="fc" id="L36">    }</span>
+
+    public String getDescription() {
+<span class="fc" id="L39">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="fc" id="L43">        this.description = description;</span>
+<span class="fc" id="L44">    }</span>
+
+    public boolean getIsFinished() {
+<span class="fc" id="L47">        return isFinished;</span>
+    }
+
+    public void setIsFinished(boolean isFinished) {
+<span class="fc" id="L51">        this.isFinished = isFinished;</span>
+<span class="fc" id="L52">    }</span>
+
+    public String getConfirmTitle() {
+<span class="fc" id="L55">        return confirmTitle;</span>
+    }
+
+    public void setConfirmTitle(String confirmTitle) {
+<span class="fc" id="L59">        this.confirmTitle = confirmTitle;</span>
+<span class="fc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

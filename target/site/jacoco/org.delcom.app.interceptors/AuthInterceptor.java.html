@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.interceptors</a> &gt; <span class="el_source">AuthInterceptor.java</span></div><h1>AuthInterceptor.java</h1><pre class="source lang-java linenums">package org.delcom.app.interceptors;
+
+import org.delcom.app.configs.AuthContext;
+import org.delcom.app.entities.AuthToken;
+import org.delcom.app.entities.User;
+import org.delcom.app.services.AuthTokenService;
+import org.delcom.app.services.UserService;
+import org.delcom.app.utils.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.UUID;
+
+@Component
+<span class="fc" id="L19">public class AuthInterceptor implements HandlerInterceptor {</span>
+
+    @Autowired
+    protected AuthContext authContext;
+
+    @Autowired
+    protected AuthTokenService authTokenService;
+
+    @Autowired
+    protected UserService userService;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        // Skip auth untuk endpoint public
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (isPublicEndpoint(request)) {</span>
+<span class="fc" id="L35">            return true;</span>
+        }
+
+        // Ambil bearer token dari header
+<span class="fc" id="L39">        String rawAuthToken = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="fc" id="L40">        String token = extractToken(rawAuthToken);</span>
+
+        // Validasi token
+<span class="fc bfc" id="L43" title="All 4 branches covered.">        if (token == null || token.isEmpty()) {</span>
+<span class="fc" id="L44">            sendErrorResponse(response, 401, &quot;Token autentikasi tidak ditemukan&quot;);</span>
+<span class="fc" id="L45">            return false;</span>
+        }
+
+        // Validasi format token JWT
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (!JwtUtil.validateToken(token, true)) {</span>
+<span class="fc" id="L50">            sendErrorResponse(response, 401, &quot;Token autentikasi tidak valid&quot;);</span>
+<span class="fc" id="L51">            return false;</span>
+        }
+
+        // Ekstrak userId dari token
+<span class="fc" id="L55">        UUID userId = JwtUtil.extractUserId(token);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (userId == null) {</span>
+<span class="fc" id="L57">            sendErrorResponse(response, 401, &quot;Format token autentikasi tidak valid&quot;);</span>
+<span class="fc" id="L58">            return false;</span>
+        }
+
+        // Cari token di database
+<span class="fc" id="L62">        AuthToken authToken = authTokenService.findUserToken(userId, token);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (authToken == null) {</span>
+<span class="fc" id="L64">            sendErrorResponse(response, 401, &quot;Token autentikasi sudah expired&quot;);</span>
+<span class="fc" id="L65">            return false;</span>
+        }
+
+        // Ambil data user
+<span class="fc" id="L69">        User authUser = userService.getUserById(authToken.getUserId());</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (authUser == null) {</span>
+<span class="fc" id="L71">            sendErrorResponse(response, 404, &quot;User tidak ditemukan&quot;);</span>
+<span class="fc" id="L72">            return false;</span>
+        }
+
+        // Set user ke auth context
+<span class="fc" id="L76">        authContext.setAuthUser(authUser);</span>
+<span class="fc" id="L77">        return true;</span>
+    }
+
+    private String extractToken(String rawAuthToken) {
+<span class="fc bfc" id="L81" title="All 4 branches covered.">        if (rawAuthToken != null &amp;&amp; rawAuthToken.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="fc" id="L82">            return rawAuthToken.substring(7); // hapus &quot;Bearer &quot;</span>
+        }
+<span class="fc" id="L84">        return null;</span>
+    }
+
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+<span class="fc" id="L88">        String path = request.getRequestURI();</span>
+        // String method = request.getMethod();
+
+        // Endpoint public yang tidak perlu auth
+<span class="fc bfc" id="L92" title="All 4 branches covered.">        return path.startsWith(&quot;/api/auth&quot;) || path.equals(&quot;/error&quot;);</span>
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws Exception {
+<span class="fc" id="L96">        response.setStatus(status);</span>
+<span class="fc" id="L97">        response.setContentType(&quot;application/json&quot;);</span>
+<span class="fc" id="L98">        response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+
+<span class="fc" id="L100">        String jsonResponse = String.format(</span>
+                &quot;{\&quot;status\&quot;:\&quot;fail\&quot;,\&quot;message\&quot;:\&quot;%s\&quot;,\&quot;data\&quot;:null}&quot;,
+                message);
+<span class="fc" id="L103">        response.getWriter().write(jsonResponse);</span>
+<span class="fc" id="L104">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

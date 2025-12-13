@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Todo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.entities</a> &gt; <span class="el_source">Todo.java</span></div><h1>Todo.java</h1><pre class="source lang-java linenums">package org.delcom.app.entities;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = &quot;todos&quot;)
+public class Todo {
+
+    @Id
+    @GeneratedValue(generator = &quot;UUID&quot;)
+    @Column(name = &quot;id&quot;, updatable = false, nullable = false, columnDefinition = &quot;uuid&quot;)
+    private UUID id;
+
+    @Column(name = &quot;user_id&quot;, nullable = false)
+    private UUID userId;
+
+    @Column(name = &quot;title&quot;, nullable = false)
+    private String title;
+
+    @Column(name = &quot;description&quot;, nullable = false)
+    private String description;
+
+<span class="fc" id="L26">    @Column(name = &quot;is_finished&quot;, nullable = false, columnDefinition = &quot;boolean default false&quot;)</span>
+<span class="fc" id="L27">    private Boolean isFinished = false;</span>
+
+    @Column(name = &quot;cover&quot;, nullable = true)
+    private String cover;
+
+    @Column(name = &quot;created_at&quot;, nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = &quot;updated_at&quot;, nullable = false)
+    private LocalDateTime updatedAt;
+
+    // Constructor, getter, setter
+<span class="fc" id="L39">    public Todo() {</span>
+<span class="fc" id="L40">    }</span>
+
+<span class="fc" id="L42">    public Todo(UUID userId, String title, String description, Boolean isFinished) {</span>
+<span class="fc" id="L43">        this.userId = userId;</span>
+<span class="fc" id="L44">        this.title = title;</span>
+<span class="fc" id="L45">        this.description = description;</span>
+<span class="fc" id="L46">        this.isFinished = isFinished;</span>
+<span class="fc" id="L47">    }</span>
+
+    // Getter &amp; Setter
+    public UUID getId() {
+<span class="fc" id="L51">        return id;</span>
+    }
+
+    public void setId(UUID id) {
+<span class="fc" id="L55">        this.id = id;</span>
+<span class="fc" id="L56">    }</span>
+
+    public UUID getUserId() {
+<span class="fc" id="L59">        return userId;</span>
+    }
+
+    public void setUserId(UUID userId) {
+<span class="fc" id="L63">        this.userId = userId;</span>
+<span class="fc" id="L64">    }</span>
+
+    public String getTitle() {
+<span class="fc" id="L67">        return title;</span>
+    }
+
+    public void setTitle(String title) {
+<span class="fc" id="L71">        this.title = title;</span>
+<span class="fc" id="L72">    }</span>
+
+    public String getDescription() {
+<span class="fc" id="L75">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="fc" id="L79">        this.description = description;</span>
+<span class="fc" id="L80">    }</span>
+
+    public Boolean isFinished() {
+<span class="fc" id="L83">        return isFinished;</span>
+    }
+
+    public void setFinished(Boolean finished) {
+<span class="fc" id="L87">        isFinished = finished;</span>
+<span class="fc" id="L88">    }</span>
+
+    public String getCover() {
+<span class="fc" id="L91">        return cover;</span>
+    }
+
+    public void setCover(String cover) {
+<span class="fc" id="L95">        this.cover = cover;</span>
+<span class="fc" id="L96">    }</span>
+
+    public LocalDateTime getCreatedAt() {
+<span class="fc" id="L99">        return createdAt;</span>
+    }
+
+    public LocalDateTime getUpdatedAt() {
+<span class="fc" id="L103">        return updatedAt;</span>
+    }
+
+    // ======= @PrePersist &amp; @PreUpdate =======
+    @PrePersist
+    protected void onCreate() {
+<span class="fc" id="L109">        createdAt = LocalDateTime.now();</span>
+<span class="fc" id="L110">        updatedAt = LocalDateTime.now();</span>
+<span class="fc" id="L111">    }</span>
+
+    @PreUpdate
+    protected void onUpdate() {
+<span class="fc" id="L115">        updatedAt = LocalDateTime.now();</span>
+<span class="fc" id="L116">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

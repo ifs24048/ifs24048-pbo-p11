@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileStorageService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.services</a> &gt; <span class="el_source">FileStorageService.java</span></div><h1>FileStorageService.java</h1><pre class="source lang-java linenums">package org.delcom.app.services;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
+@Service
+<span class="fc" id="L15">public class FileStorageService {</span>
+    @Value(&quot;${app.upload.dir:./uploads}&quot;)
+    protected String uploadDir;
+
+    public String storeFile(MultipartFile file, UUID todoId) throws IOException {
+        // Buat directory jika belum ada
+<span class="fc" id="L21">        Path uploadPath = Paths.get(uploadDir);</span>
+<span class="fc bfc" id="L22" title="All 2 branches covered.">        if (!Files.exists(uploadPath)) {</span>
+<span class="fc" id="L23">            Files.createDirectories(uploadPath);</span>
+        }
+
+        // Generate unique filename
+<span class="fc" id="L27">        String originalFilename = file.getOriginalFilename();</span>
+<span class="fc" id="L28">        String fileExtension = &quot;&quot;;</span>
+<span class="fc bfc" id="L29" title="All 4 branches covered.">        if (originalFilename != null &amp;&amp; originalFilename.contains(&quot;.&quot;)) {</span>
+<span class="fc" id="L30">            fileExtension = originalFilename.substring(originalFilename.lastIndexOf(&quot;.&quot;));</span>
+        }
+
+<span class="fc" id="L33">        String filename = &quot;cover_&quot; + todoId.toString() + fileExtension;</span>
+
+        // Simpan file
+<span class="fc" id="L36">        Path filePath = uploadPath.resolve(filename);</span>
+<span class="fc" id="L37">        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);</span>
+
+<span class="fc" id="L39">        return filename;</span>
+    }
+
+    public boolean deleteFile(String filename) {
+        try {
+<span class="fc" id="L44">            Path filePath = Paths.get(uploadDir).resolve(filename);</span>
+<span class="fc" id="L45">            return Files.deleteIfExists(filePath);</span>
+<span class="fc" id="L46">        } catch (IOException e) {</span>
+<span class="fc" id="L47">            return false;</span>
+        }
+    }
+
+    public Path loadFile(String filename) {
+<span class="fc" id="L52">        return Paths.get(uploadDir).resolve(filename);</span>
+    }
+
+    public boolean fileExists(String filename) {
+<span class="fc" id="L56">        return Files.exists(loadFile(filename));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

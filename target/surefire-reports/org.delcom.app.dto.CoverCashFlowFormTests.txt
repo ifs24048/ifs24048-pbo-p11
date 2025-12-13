@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.delcom.app.dto.CoverCashFlowFormTests
+-------------------------------------------------------------------------------
+Tests run: 28, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.135 s -- in org.delcom.app.dto.CoverCashFlowFormTests

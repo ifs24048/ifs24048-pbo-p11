@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.controllers</a> &gt; <span class="el_source">UserController.java</span></div><h1>UserController.java</h1><pre class="source lang-java linenums">package org.delcom.app.controllers;
+
+import java.util.Map;
+import java.util.UUID;
+
+import org.delcom.app.configs.ApiResponse;
+import org.delcom.app.configs.AuthContext;
+import org.delcom.app.entities.AuthToken;
+import org.delcom.app.entities.User;
+import org.delcom.app.services.AuthTokenService;
+import org.delcom.app.services.UserService;
+import org.delcom.app.utils.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api&quot;)
+public class UserController {
+    private final UserService userService;
+    private final AuthTokenService authTokenService;
+
+<span class="fc" id="L24">    public UserController(UserService userService, AuthTokenService authTokenService) {</span>
+<span class="fc" id="L25">        this.userService = userService;</span>
+<span class="fc" id="L26">        this.authTokenService = authTokenService;</span>
+<span class="fc" id="L27">    }</span>
+
+    @Autowired
+    protected AuthContext authContext;
+
+    // Melakukan registrasi pengguna
+    // -------------------------------
+    @PostMapping(&quot;/auth/register&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, UUID&gt;&gt;&gt; registerUser(@RequestBody User reqUser) {
+<span class="fc bfc" id="L36" title="All 4 branches covered.">        if (reqUser.getName() == null || reqUser.getName().isEmpty()) {</span>
+<span class="fc" id="L37">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data nama tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L38" title="All 4 branches covered.">        } else if (reqUser.getEmail() == null || reqUser.getEmail().isEmpty()) {</span>
+<span class="fc" id="L39">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data email tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L40" title="All 4 branches covered.">        } else if (reqUser.getPassword() == null || reqUser.getPassword().isEmpty()) {</span>
+<span class="fc" id="L41">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data password tidak valid&quot;, null));</span>
+        }
+
+        // Cek apakah email sudah terdaftar
+<span class="fc" id="L45">        User existingUser = userService.getUserByEmail(reqUser.getEmail());</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (existingUser != null) {</span>
+<span class="fc" id="L47">            return ResponseEntity.badRequest()</span>
+<span class="fc" id="L48">                    .body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Pengguna sudah terdaftar dengan email ini&quot;,</span>
+                            null));
+        }
+
+<span class="fc" id="L52">        String hashPassword = new BCryptPasswordEncoder().encode(reqUser.getPassword());</span>
+
+<span class="fc" id="L54">        User createdUser = userService.createUser(</span>
+<span class="fc" id="L55">                reqUser.getName(),</span>
+<span class="fc" id="L56">                reqUser.getEmail(),</span>
+                hashPassword);
+
+<span class="fc" id="L59">        return ResponseEntity.ok().body(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Berhasil melakukan pendaftaran&quot;,
+<span class="fc" id="L62">                Map.of(&quot;id&quot;, createdUser.getId())));</span>
+    }
+
+    // Melakukan login pengguna
+    // -------------------------------
+    @PostMapping(&quot;/auth/login&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, String&gt;&gt;&gt; loginUser(@RequestBody User reqUser) {
+<span class="fc bfc" id="L69" title="All 4 branches covered.">        if (reqUser.getEmail() == null || reqUser.getEmail().isEmpty()) {</span>
+<span class="fc" id="L70">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L71" title="All 4 branches covered.">        } else if (reqUser.getPassword() == null || reqUser.getPassword().isEmpty()) {</span>
+<span class="fc" id="L72">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data tidak valid&quot;, null));</span>
+        }
+
+<span class="fc" id="L75">        User existingUser = userService.getUserByEmail(reqUser.getEmail());</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (existingUser == null) {</span>
+<span class="fc" id="L77">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Email atau password salah&quot;, null));</span>
+        }
+
+<span class="fc" id="L80">        boolean isPasswordMatch = new BCryptPasswordEncoder()</span>
+<span class="fc" id="L81">                .matches(reqUser.getPassword(), existingUser.getPassword());</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (!isPasswordMatch) {</span>
+<span class="fc" id="L83">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Email atau password salah&quot;, null));</span>
+        }
+
+<span class="fc" id="L86">        String jwtToken = JwtUtil.generateToken(existingUser.getId());</span>
+
+        // Hapus token lama jika ada
+<span class="fc" id="L89">        AuthToken existingAuthToken = authTokenService.findUserToken(existingUser.getId(), jwtToken);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (existingAuthToken != null) {</span>
+<span class="fc" id="L91">            authTokenService.deleteAuthToken(existingUser.getId());</span>
+        }
+
+<span class="fc" id="L94">        AuthToken authToken = new AuthToken(existingUser.getId(), jwtToken);</span>
+<span class="fc" id="L95">        var createdAuthToken = authTokenService.createAuthToken(authToken);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (createdAuthToken == null) {</span>
+<span class="fc" id="L97">            return ResponseEntity.status(500).body(new ApiResponse&lt;&gt;(&quot;error&quot;, &quot;Gagal membuat token autentikasi&quot;, null));</span>
+        }
+
+<span class="fc" id="L100">        return ResponseEntity.ok().body(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Login berhasil&quot;,
+<span class="fc" id="L103">                Map.of(&quot;authToken&quot;, jwtToken)));</span>
+    }
+
+    // Get informasi pengguna
+    @GetMapping(&quot;/users/me&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, User&gt;&gt;&gt; getUserInfo() {
+
+        // Validasi autentikasi
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L112">            return ResponseEntity.status(401).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data tidak valid&quot;, null));</span>
+        }
+<span class="fc" id="L114">        User authUser = authContext.getAuthUser();</span>
+<span class="fc" id="L115">        authUser.setPassword(null); // Sembunyikan password dalam response</span>
+
+<span class="fc" id="L117">        ApiResponse&lt;Map&lt;String, User&gt;&gt; response = new ApiResponse&lt;&gt;(&quot;success&quot;, &quot;Berhasil mendapatkan info user&quot;,</span>
+<span class="fc" id="L118">                Map.of(&quot;user&quot;, authUser));</span>
+<span class="fc" id="L119">        return ResponseEntity.ok(response);</span>
+    }
+
+    // Mengubah informasi pengguna
+    @PutMapping(&quot;/users/me&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;User&gt;&gt; updateUser(@RequestBody User reqUser) {
+
+        // Validasi autentikasi
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L128">            return ResponseEntity.status(401).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data tidak valid&quot;, null));</span>
+        }
+<span class="fc" id="L130">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc bfc" id="L132" title="All 4 branches covered.">        if (reqUser.getName() == null || reqUser.getName().isEmpty()) {</span>
+<span class="fc" id="L133">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data nama tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L134" title="All 4 branches covered.">        } else if (reqUser.getEmail() == null || reqUser.getEmail().isEmpty()) {</span>
+<span class="fc" id="L135">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data email tidak valid&quot;, null));</span>
+        }
+
+<span class="fc" id="L138">        User updatedUser = userService.updateUser(</span>
+<span class="fc" id="L139">                authUser.getId(),</span>
+<span class="fc" id="L140">                reqUser.getName(),</span>
+<span class="fc" id="L141">                reqUser.getEmail());</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">        if (updatedUser == null) {</span>
+<span class="fc" id="L143">            ApiResponse&lt;User&gt; response = new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak ditemukan&quot;, null);</span>
+<span class="fc" id="L144">            return ResponseEntity.status(404).body(response);</span>
+        }
+
+<span class="fc" id="L147">        ApiResponse&lt;User&gt; response = new ApiResponse&lt;&gt;(&quot;success&quot;, &quot;User berhasil diupdate&quot;, null);</span>
+<span class="fc" id="L148">        return ResponseEntity.ok(response);</span>
+    }
+
+    // Mengubah password pengguna
+    @PutMapping(&quot;/users/me/password&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Void&gt;&gt; updateUserPassword(@RequestBody Map&lt;String, String&gt; passwordPayload) {
+
+        // Validasi autentikasi
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L157">            return ResponseEntity.status(401)</span>
+<span class="fc" id="L158">                    .body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Autentikasi tidak valid&quot;, null));</span>
+        }
+
+<span class="fc" id="L161">        User authUser = authContext.getAuthUser();</span>
+
+        // Ambil old &amp; new password
+<span class="fc" id="L164">        String oldPassword = passwordPayload.get(&quot;password&quot;);</span>
+<span class="fc" id="L165">        String newPassword = passwordPayload.get(&quot;newPassword&quot;);</span>
+
+<span class="fc bfc" id="L167" title="All 6 branches covered.">        if (oldPassword == null || oldPassword.isEmpty() ||</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">                newPassword == null || newPassword.isEmpty()) {</span>
+<span class="fc" id="L169">            return ResponseEntity.badRequest()</span>
+<span class="fc" id="L170">                    .body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Password lama dan baru wajib diisi&quot;, null));</span>
+        }
+
+        // Validasi password lama
+<span class="fc" id="L174">        boolean isPasswordMatch = new BCryptPasswordEncoder()</span>
+<span class="fc" id="L175">                .matches(oldPassword, authUser.getPassword());</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (!isPasswordMatch) {</span>
+<span class="fc" id="L177">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Konfirmasi password tidak cocok&quot;, null));</span>
+        }
+
+        // Update password baru
+<span class="fc" id="L181">        String hashPassword = new BCryptPasswordEncoder().encode(newPassword);</span>
+<span class="fc" id="L182">        User updatedUser = userService.updatePassword(authUser.getId(), hashPassword);</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (updatedUser == null) {</span>
+<span class="fc" id="L184">            ApiResponse&lt;Void&gt; response = new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak ditemukan&quot;, null);</span>
+<span class="fc" id="L185">            return ResponseEntity.status(404).body(response);</span>
+        }
+
+        // Hapus token lama setelah password diubah
+<span class="fc" id="L189">        authTokenService.deleteAuthToken(authUser.getId());</span>
+
+<span class="fc" id="L191">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(&quot;success&quot;, &quot;Password berhasil diupdate&quot;, null));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,8 +1,15 @@
 HELP.md
-target/
+# target/
+# Uncomment the following lines to ignore specific target subdirectories:
+#!**/src/main/**/target/
+#!**/src/test/**/target/
+
+# JaCoCo reports - explicitly not ignored for agent analysis
+!target/site/jacoco/jacoco.xml
+!target/site/jacoco/jacoco.csv
+# !target/site/jacoco/index.html # Keep this commented if you prefer not to expose the full HTML report
+
 .mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
 ### STS ###
 .apt_generated
@@ -35,3 +42,5 @@ build/
 /src/main/resources/application.properties
 /uploads/
 app.rest
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

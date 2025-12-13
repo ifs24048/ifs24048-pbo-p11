@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CoverCashFlowForm.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.dto</a> &gt; <span class="el_source">CoverCashFlowForm.java</span></div><h1>CoverCashFlowForm.java</h1><pre class="source lang-java linenums">package org.delcom.app.dto;
+
+import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.constraints.NotNull;
+
+public class CoverCashFlowForm {
+
+    private UUID id;
+
+    @NotNull(message = &quot;Cover tidak boleh kosong&quot;)
+    private MultipartFile coverFile;
+
+    // Constructor
+<span class="fc" id="L15">    public CoverCashFlowForm() {</span>
+<span class="fc" id="L16">    }</span>
+
+    // Getters and Setters
+    public UUID getId() {
+<span class="fc" id="L20">        return id;</span>
+    }
+
+    public void setId(UUID id) {
+<span class="fc" id="L24">        this.id = id;</span>
+<span class="fc" id="L25">    }</span>
+
+    public MultipartFile getCoverFile() {
+<span class="fc" id="L28">        return coverFile;</span>
+    }
+
+    public void setCoverFile(MultipartFile coverFile) {
+<span class="fc" id="L32">        this.coverFile = coverFile;</span>
+<span class="fc" id="L33">    }</span>
+
+    // Helper methods
+    public boolean isEmpty() {
+<span class="fc bfc" id="L37" title="All 4 branches covered.">        return coverFile == null || coverFile.isEmpty();</span>
+    }
+
+    public String getOriginalFilename() {
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        return coverFile != null ? coverFile.getOriginalFilename() : null;</span>
+    }
+
+    // Validation methods
+    public boolean isValidImage() {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (this.isEmpty()) {</span>
+<span class="fc" id="L47">            return false;</span>
+        }
+
+<span class="fc" id="L50">        String contentType = coverFile.getContentType();</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        return contentType != null &amp;&amp;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                (contentType.equals(&quot;image/jpeg&quot;) ||</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">                 contentType.equals(&quot;image/png&quot;) ||</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">                 contentType.equals(&quot;image/gif&quot;) ||</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                 contentType.equals(&quot;image/webp&quot;));</span>
+    }
+
+    public boolean isSizeValid(long maxSize) {
+<span class="fc bfc" id="L59" title="All 4 branches covered.">        return coverFile != null &amp;&amp; coverFile.getSize() &lt;= maxSize;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.delcom.app.configs.SecurityConfigTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.169 s -- in org.delcom.app.configs.SecurityConfigTest

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CashFlowController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Spring Todos</a> &gt; <a href="index.source.html" class="el_package">org.delcom.app.controllers</a> &gt; <span class="el_source">CashFlowController.java</span></div><h1>CashFlowController.java</h1><pre class="source lang-java linenums">package org.delcom.app.controllers;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.delcom.app.configs.ApiResponse;
+import org.delcom.app.configs.AuthContext;
+import org.delcom.app.entities.CashFlow;
+import org.delcom.app.entities.User;
+import org.delcom.app.services.CashFlowService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api/cashflows&quot;)
+public class CashFlowController {
+    
+    private final CashFlowService cashFlowService;
+
+    @Autowired
+    protected AuthContext authContext;
+
+<span class="fc" id="L25">    public CashFlowController(CashFlowService cashFlowService) {</span>
+<span class="fc" id="L26">        this.cashFlowService = cashFlowService;</span>
+<span class="fc" id="L27">    }</span>
+
+    // Menambahkan cash flow baru
+    // -------------------------------
+    @PostMapping
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, UUID&gt;&gt;&gt; createCashFlow(@RequestBody CashFlow reqCashFlow) {
+
+        // Validasi input
+<span class="fc bfc" id="L35" title="All 4 branches covered.">        if (reqCashFlow.getType() == null || reqCashFlow.getType().isEmpty()) {</span>
+<span class="fc" id="L36">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data type tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L37" title="All 4 branches covered.">        } else if (reqCashFlow.getSource() == null || reqCashFlow.getSource().isEmpty()) {</span>
+<span class="fc" id="L38">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data source tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L39" title="All 4 branches covered.">        } else if (reqCashFlow.getLabel() == null || reqCashFlow.getLabel().isEmpty()) {</span>
+<span class="fc" id="L40">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data label tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L41" title="All 4 branches covered.">        } else if (reqCashFlow.getAmount() == null || reqCashFlow.getAmount() &lt;= 0) {</span>
+<span class="fc" id="L42">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data amount tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L43" title="All 4 branches covered.">        } else if (reqCashFlow.getDescription() == null || reqCashFlow.getDescription().isEmpty()) {</span>
+<span class="fc" id="L44">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data description tidak valid&quot;, null));</span>
+        }
+
+        // Validasi autentikasi
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L49">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L51">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L53">        CashFlow newCashFlow = cashFlowService.createCashFlow(</span>
+<span class="fc" id="L54">            authUser.getId(), </span>
+<span class="fc" id="L55">            reqCashFlow.getType(), </span>
+<span class="fc" id="L56">            reqCashFlow.getSource(), </span>
+<span class="fc" id="L57">            reqCashFlow.getLabel(), </span>
+<span class="fc" id="L58">            reqCashFlow.getAmount(), </span>
+<span class="fc" id="L59">            reqCashFlow.getDescription()</span>
+        );
+
+<span class="fc" id="L62">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Berhasil menambahkan data&quot;,
+<span class="fc" id="L65">                Map.of(&quot;id&quot;, newCashFlow.getId())));</span>
+    }
+
+    // Mendapatkan semua cash flow dengan opsi pencarian
+    // -------------------------------
+    @GetMapping
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, List&lt;CashFlow&gt;&gt;&gt;&gt; getAllCashFlows(
+            @RequestParam(required = false) String search) {
+        
+        // Validasi autentikasi
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L76">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L78">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L80">        List&lt;CashFlow&gt; cashFlows = cashFlowService.getAllCashFlows(authUser.getId(), search);</span>
+<span class="fc" id="L81">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Berhasil mengambil data&quot;,
+<span class="fc" id="L84">                Map.of(&quot;cash_flows&quot;, cashFlows)));</span>
+    }
+
+    // Mendapatkan cash flow berdasarkan ID
+    // -------------------------------
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, CashFlow&gt;&gt;&gt; getCashFlowById(@PathVariable UUID id) {
+        
+        // Validasi autentikasi
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L94">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L96">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L98">        CashFlow cashFlow = cashFlowService.getCashFlowById(authUser.getId(), id);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (cashFlow == null) {</span>
+<span class="fc" id="L100">            return ResponseEntity.status(404).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data cash flow tidak ditemukan&quot;, null));</span>
+        }
+
+<span class="fc" id="L103">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Berhasil mengambil data&quot;,
+<span class="fc" id="L106">                Map.of(&quot;cash_flow&quot;, cashFlow)));</span>
+    }
+
+    // Mendapatkan semua label
+    // -------------------------------
+    @GetMapping(&quot;/labels&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Map&lt;String, List&lt;String&gt;&gt;&gt;&gt; getCashFlowLabels() {
+        
+        // Validasi autentikasi
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L116">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L118">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L120">        List&lt;String&gt; labels = cashFlowService.getAllLabels(authUser.getId());</span>
+<span class="fc" id="L121">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Berhasil mengambil data&quot;,
+<span class="fc" id="L124">                Map.of(&quot;labels&quot;, labels)));</span>
+    }
+
+    // Memperbarui cash flow berdasarkan ID
+    // -------------------------------
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;CashFlow&gt;&gt; updateCashFlow(@PathVariable UUID id, @RequestBody CashFlow reqCashFlow) {
+
+        // Validasi input
+<span class="fc bfc" id="L133" title="All 4 branches covered.">        if (reqCashFlow.getType() == null || reqCashFlow.getType().isEmpty()) {</span>
+<span class="fc" id="L134">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data type tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L135" title="All 4 branches covered.">        } else if (!reqCashFlow.getType().equals(&quot;Inflow&quot;) &amp;&amp; !reqCashFlow.getType().equals(&quot;Outflow&quot;)) {</span>
+<span class="fc" id="L136">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Type harus Inflow atau Outflow&quot;, null));</span>
+<span class="fc bfc" id="L137" title="All 4 branches covered.">        } else if (reqCashFlow.getSource() == null || reqCashFlow.getSource().isEmpty()) {</span>
+<span class="fc" id="L138">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data source tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L139" title="All 4 branches covered.">        } else if (reqCashFlow.getLabel() == null || reqCashFlow.getLabel().isEmpty()) {</span>
+<span class="fc" id="L140">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data label tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L141" title="All 4 branches covered.">        } else if (reqCashFlow.getAmount() == null || reqCashFlow.getAmount() &lt;= 0) {</span>
+<span class="fc" id="L142">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data amount tidak valid&quot;, null));</span>
+<span class="fc bfc" id="L143" title="All 4 branches covered.">        } else if (reqCashFlow.getDescription() == null || reqCashFlow.getDescription().isEmpty()) {</span>
+<span class="fc" id="L144">            return ResponseEntity.badRequest().body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data description tidak valid&quot;, null));</span>
+        }
+
+        // Validasi autentikasi
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L149">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L151">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L153">        CashFlow updatedCashFlow = cashFlowService.updateCashFlow(</span>
+<span class="fc" id="L154">            authUser.getId(), </span>
+            id, 
+<span class="fc" id="L156">            reqCashFlow.getType(), </span>
+<span class="fc" id="L157">            reqCashFlow.getSource(), </span>
+<span class="fc" id="L158">            reqCashFlow.getLabel(), </span>
+<span class="fc" id="L159">            reqCashFlow.getAmount(), </span>
+<span class="fc" id="L160">            reqCashFlow.getDescription()</span>
+        );
+
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        if (updatedCashFlow == null) {</span>
+<span class="fc" id="L164">            return ResponseEntity.status(404).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data cash flow tidak ditemukan&quot;, null));</span>
+        }
+
+<span class="fc" id="L167">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(&quot;success&quot;, &quot;Berhasil memperbarui data&quot;, null));</span>
+    }
+
+    // Menghapus cash flow berdasarkan ID
+    // -------------------------------
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;String&gt;&gt; deleteCashFlow(@PathVariable UUID id) {
+        
+        // Validasi autentikasi
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        if (!authContext.isAuthenticated()) {</span>
+<span class="fc" id="L177">            return ResponseEntity.status(403).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;User tidak terautentikasi&quot;, null));</span>
+        }
+<span class="fc" id="L179">        User authUser = authContext.getAuthUser();</span>
+
+<span class="fc" id="L181">        boolean status = cashFlowService.deleteCashFlow(authUser.getId(), id);</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (!status) {</span>
+<span class="fc" id="L183">            return ResponseEntity.status(404).body(new ApiResponse&lt;&gt;(&quot;fail&quot;, &quot;Data cash flow tidak ditemukan&quot;, null));</span>
+        }
+
+<span class="fc" id="L186">        return ResponseEntity.ok(new ApiResponse&lt;&gt;(</span>
+                &quot;success&quot;,
+                &quot;Data cash flow berhasil dihapus&quot;,
+                null));
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

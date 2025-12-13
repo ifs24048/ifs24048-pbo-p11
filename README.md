@@ -34,11 +34,21 @@ URL: http://localhost:8080
 
 ### Menjalankan Test Covertage
 
-pre-command: `mvn clean install`
+Untuk menjalankan semua test dan juga menghasilkan laporan coverage Jacoco, gunakan command berikut:
 
-command: `./mvnw test jacoco:report`
+command: `mvn clean verify`
 
-command-check: `./mvnw clean test jacoco:check`
+Ini akan menjalankan semua test, menghasilkan laporan Jacoco, dan melakukan pengecekan coverage.
+Setelah itu, Anda bisa membuka laporan Jacoco dengan:
+
+#### Windows:
+command with open jacoco: `start target\site\jacoco\index.html`
+
+#### Mac:
+command with open jacoco: `open target\site\jacoco\index.html`
+
+#### Linux:
+command with open jacoco: `xdg-open target\site\jacoco\index.html`
 
 ## Purpose
 
